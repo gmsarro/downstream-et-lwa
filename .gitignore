@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.mypy_cache/
+.ruff_cache/
+*.nc
+*.nc4
+*.npz
+*.png
+*.gif
+*.log
+*.out
+*.mod
+.DS_Store

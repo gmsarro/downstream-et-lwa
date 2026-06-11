@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "downstream-et-lwa"
+version = "1.0.0"
+description = "LWA budget, jet carrying capacity, RWP, and latent-heating diagnostics for the downstream response to extratropical transition"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Giorgio M. Sarro" }]
+dependencies = [
+    "numpy",
+    "pandas",
+    "xarray",
+    "netCDF4",
+    "scipy",
+    "matplotlib",
+    "cartopy",
+    "falwa",
+    "typer",
+    "typing_extensions",
+]
+
+[project.optional-dependencies]
+dev = ["mypy", "pytest", "ruff"]
+
+[project.scripts]
+downstream-et-lwa = "downstream_et_lwa.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["downstream_et_lwa*"]
+
+[tool.setuptools.package-data]
+downstream_et_lwa = ["py.typed"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_ignores = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100

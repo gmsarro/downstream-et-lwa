@@ -1,0 +1,20 @@
+{
+  "era5_baro": "/path/to/era5/baro_n",
+  "era5_lh_lwa": "/path/to/era5/lh_lwa",
+  "era5_nonqg": "/path/to/era5/nonqg_lwa",
+  "era5_raw": "/path/to/era5/raw_6hrly",
+  "era5_qgpv": "/path/to/era5/qgpv",
+  "era5_rwb": "/path/to/era5/rwb_masks",
+  "era5_cc_npz": "/path/to/era5/carrying_capacity/era5_monthly_clim_params.npz",
+  "merra2_baro": "/path/to/merra2/baro_n",
+  "merra2_heat_fortran": "/path/to/merra2/heating_lwa_fortran",
+  "merra2_heat_sandro": "/path/to/merra2/heating_ncforce_baro",
+  "merra2_cc_npz": "/path/to/merra2/carrying_capacity/merra2_monthly_clim_params.npz",
+  "imerg": "/path/to/imerg/monthly_nc4",
+  "mpas_budget": "/path/to/mpas_budget",
+  "mpas_cc": "/path/to/mpas/carrying_capacity",
+  "mpas_rwb": "/path/to/mpas_rwb",
+  "mpas_subset": "/path/to/mpas_combined/subset",
+  "mpas_lh_lwa": "/path/to/mpas/lh_lwa",
+  "mpas_nonqg": "/path/to/mpas/nonqg_lwa"
+}
