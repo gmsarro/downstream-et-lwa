@@ -31,7 +31,7 @@ MPAS-A, or any dataset regridded to an ERA5-style layout) and produces:
   250-hPa meridional wind (Zimin et al. 2003; Quinting & Jones 2016);
 - a **counterfactual TC-local latent-heating removal experiment**: forward
   integration of the 2-D LWA budget with the storm's latent-heating source
-  masked (extension of Neal et al. 2022 and Lubis & Nakamura 2024);
+  masked (extension of Neal et al. 2022);
 - recurvature-relative **storm composites**, RWP/wave-breaking
   stratifications, Monte Carlo significance, and all paper figures.
 
@@ -196,8 +196,6 @@ Composite steps locate gridded archives through a JSON config (see
   **73**, 211–229.
 - Barpanda, P., and N. Nakamura, 2025: The seasonal carrying capacity of
   midlatitude jet streams. *J. Climate*, **38**, 4653–4672.
-- Lubis, S. W., and N. Nakamura, 2024: A two-dimensional advective model
-  for jet-stream waviness. *J. Climate*.
 - Neal, E., C. S. Y. Huang, and N. Nakamura, 2022: The 2021 Pacific
   Northwest heat wave and associated blocking. *Geophys. Res. Lett.*
 - Quinting, J. F., and S. C. Jones, 2016: On the impact of tropical cyclones
@@ -209,8 +207,6 @@ Composite steps locate gridded archives through a JSON config (see
   for finite-amplitude local wave activity diagnostics. *Geoscience Data
   Journal*, **12**, e70006.
   [csyhuang/hn2016_falwa](https://github.com/csyhuang/hn2016_falwa)
-- Kaderli, S., 2023: WaveBreaking — detection, classification and tracking
-  of Rossby wave breaking. [skaderli/WaveBreaking](https://github.com/skaderli/WaveBreaking)
 - [gmsarro/wave_breaking_using_qgpv](https://github.com/gmsarro/wave_breaking_using_qgpv):
   RWB detection on QGPV at pseudo-height levels (companion repository).
 

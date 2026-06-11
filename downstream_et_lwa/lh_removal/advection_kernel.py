@@ -1,4 +1,4 @@
-"""2-D barotropic LWA advection kernel (Lubis & Nakamura 2024) with time-dependent forcing."""
+"""2-D barotropic LWA advection kernel with time-dependent forcing."""
 
 from __future__ import annotations
 
