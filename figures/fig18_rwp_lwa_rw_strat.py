@@ -129,12 +129,12 @@ def main(
         else qj_hovmoller.HOVMOLLER_GAUSSIAN_SIGMA[1],
     )
 
-    fig = plt.figure(figsize=(22.0, 14.0))
+    fig = plt.figure(figsize=(23.5, 12.8))
     gs = fig.add_gridspec(
-        5, 3,
-        height_ratios=[0.5, 1.55, 0.5, 1.55, 0.22],
+        4, 3,
+        height_ratios=[0.5, 1.55, 1.55, 0.22],
         hspace=0.38, wspace=0.26,
-        left=0.055, right=0.99, top=0.95, bottom=0.05,
+        left=0.055, right=0.99, top=0.965, bottom=0.05,
     )
 
     print(f"Building RW row (WP, N={len(storms_rw)})...", flush=True)
@@ -161,12 +161,15 @@ def main(
         full_tracks=full_tracks,
         fig=fig,
         gs=gs,
+        title_fontsize=16,
+        tick_labelsize=15,
+        show_xlabel=False,
     )
     print(f"Building no-RW row (WP, N={len(storms_no)})...", flush=True)
     ims_no: list = []
     rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
         storms_df=storms_no, basin="WP", reference=reference,
-        map_row=2, hov_row=3,
+        map_row=-1, hov_row=2,
         labels=("(d) no-RW case (WP) \N{EM DASH} RWP frequency",
                 "(e) no-RW case (WP) \N{EM DASH} RWP amplitude",
                 "(f) no-RW case (WP) \N{EM DASH} raw LWA"),
@@ -186,9 +189,12 @@ def main(
         full_tracks=full_tracks,
         fig=fig,
         gs=gs,
+        show_minimap=False,
+        title_fontsize=16,
+        tick_labelsize=15,
     )
 
-    gs_cb = gs[4, :].subgridspec(1, 3, wspace=0.45)
+    gs_cb = gs[3, :].subgridspec(1, 3, wspace=0.45)
     for j in range(3):
         _im, levels, label = ims_rw[j]
         cax = fig.add_subplot(gs_cb[0, j])
@@ -198,8 +204,8 @@ def main(
         sm.set_array([])
         cb = fig.colorbar(sm, cax=cax, orientation="horizontal",
                           ticks=levels, extend="both")
-        cb.ax.tick_params(labelsize=15)
-        cb.set_label(label, fontsize=16)
+        cb.ax.tick_params(labelsize=18)
+        cb.set_label(label, fontsize=19)
 
     out = Path(output_directory) / figure_name.format(reference=reference)
     out.parent.mkdir(parents=True, exist_ok=True)

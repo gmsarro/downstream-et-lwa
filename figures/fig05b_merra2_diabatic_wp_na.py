@@ -317,10 +317,10 @@ def main(
 
     fig.text(0.295, 0.985,
              f"WP  (N = {panel_wp['n']})",
-             ha="center", va="top", fontsize=12, fontweight="bold")
+             ha="center", va="top", fontsize=14, fontweight="bold")
     fig.text(0.685, 0.985,
              f"NA  (N = {panel_na['n']})",
-             ha="center", va="top", fontsize=12, fontweight="bold")
+             ha="center", va="top", fontsize=14, fontweight="bold")
 
     letters_wp = ["a", "c", "e", "g"]
     letters_na = ["b", "d", "f", "h"]
@@ -349,9 +349,9 @@ def main(
     sm = matplotlib.cm.ScalarMappable(norm=norm, cmap=BUDGET_CMAP)
     sm.set_array([])
     cb = fig.colorbar(sm, cax=cax, ticks=BUDGET_LEVELS, extend="both")
-    cb.ax.tick_params(labelsize=8)
+    cb.ax.tick_params(labelsize=10)
     cb.set_label(r"LWA source / residual (m s$^{-1}$ day$^{-1}$)",
-                 fontsize=9.5)
+                 fontsize=11.5)
 
     handles = [
         matplotlib.lines.Line2D(
@@ -365,7 +365,7 @@ def main(
     ]
     fig.legend(handles=handles, loc="lower center",
                bbox_to_anchor=(0.5, 0.005), ncol=3,
-               frameon=False, fontsize=9)
+               frameon=False, fontsize=11)
 
     out = fig_dir / figure_name.format(reference=reference)
     fig.savefig(out, dpi=240, bbox_inches="tight")

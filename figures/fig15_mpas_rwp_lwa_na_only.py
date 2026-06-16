@@ -123,6 +123,8 @@ def main(
         gs=gs,
         hov_axes=hov_axes,
         basin=_BASIN,
+        title_fontsize=15,
+        tick_labelsize=14,
     )
 
     n_db_c = int(len(storms_curr_b))
@@ -131,7 +133,7 @@ def main(
     fig.text(
         0.5, 0.935,
         f"MPAS current \N{EM DASH} {_BASIN_LABEL} (storm DB N={n_db_c})",
-        fontsize=11, fontweight="semibold", ha="center",
+        fontsize=13, fontweight="semibold", ha="center",
         transform=fig.transFigure)
     n_cur = mpas_strips.scenario_rwp_lwa_row(
         storms_df=storms_curr_b, scenario="current", reference=reference,
@@ -142,13 +144,14 @@ def main(
                 "(c) Barotropic LWA (MPAS)"),
         ims=ims_curr,
         full_tracks=ft_curr,
+        show_xlabel=False,
         **common,
     )
 
     fig.text(
         0.5, 0.510,
         f"MPAS future \N{EM DASH} {_BASIN_LABEL} (storm DB N={n_db_f})",
-        fontsize=11, fontweight="semibold", ha="center",
+        fontsize=13, fontweight="semibold", ha="center",
         transform=fig.transFigure)
     n_fut = mpas_strips.scenario_rwp_lwa_row(
         storms_df=storms_fut_b, scenario="future", reference=reference,
@@ -171,8 +174,8 @@ def main(
         sm.set_array([])
         cb = fig.colorbar(sm, cax=cax, orientation="horizontal",
                           ticks=levels, extend="both")
-        cb.ax.tick_params(labelsize=10)
-        cb.set_label(label, fontsize=11)
+        cb.ax.tick_params(labelsize=13)
+        cb.set_label(label, fontsize=14)
 
     ref_lbl = {"recurvature": "Recurvature-relative",
                "et": "ET-relative"}[reference]
@@ -180,7 +183,7 @@ def main(
         f"{ref_lbl} \N{EM DASH} Fig.~15 MPAS current vs future, "
         f"{_BASIN_LABEL} (composite N_cur={n_cur}, N_fut={n_fut}; "
         f"storm DB N_cur={n_db_c}, N_fut={n_db_f})",
-        fontsize=11, y=0.985,
+        fontsize=13, y=0.985,
     )
 
     out = Path(output_directory) / figure_name

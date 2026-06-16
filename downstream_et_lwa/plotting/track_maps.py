@@ -226,8 +226,8 @@ def legend_handles_months_and_mean() -> list[matplotlib.lines.Line2D]:
     return handles
 
 
-def _plot_panels(*, axes: np.ndarray, panels: Sequence[tuple],
-                 fontsize: float = 10.5) -> None:
+def _plot_panels(*, axes: Any, panels: Sequence[tuple],
+                 fontsize: float = 12.5) -> None:
     bas = ["WP", "NA"]
     bnames = ["WNP", "NA"]
     for row, col0, df, trk, dlab, letters, ref in panels:
@@ -311,7 +311,7 @@ def plot_track_map_combined(
 
     handles = legend_handles_months_and_mean()
     fig.legend(
-        handles=handles, loc="lower center", ncol=7, fontsize=8.5,
+        handles=handles, loc="lower center", ncol=7, fontsize=10.5,
         framealpha=0.95, edgecolor="0.7", bbox_to_anchor=(0.5, -0.01),
     )
     fig.tight_layout(rect=(0, 0.04, 1, 0.99))

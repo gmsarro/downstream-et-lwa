@@ -193,7 +193,7 @@ def main(
         if new_axes:
             leftmost_minimap = new_axes[0]
             leftmost_minimap.set_title(
-                f"  {btxt}  (N={n})", fontsize=11, fontweight="semibold",
+                f"  {btxt}  (N={n})", fontsize=13, fontweight="semibold",
                 loc="left", pad=4)
 
     gs_cb = gs[8, :].subgridspec(1, 3, wspace=0.45)
@@ -206,8 +206,8 @@ def main(
         sm.set_array([])
         cb = fig.colorbar(sm, cax=cax, orientation="horizontal",
                           ticks=levels, extend="both")
-        cb.ax.tick_params(labelsize=10)
-        cb.set_label(label, fontsize=11)
+        cb.ax.tick_params(labelsize=12)
+        cb.set_label(label, fontsize=13)
 
     ref_lbl = {"recurvature": "Recurvature-relative",
                "et": "ET-relative"}[reference]
@@ -215,7 +215,7 @@ def main(
     fig.suptitle(
         f"{ref_lbl} \N{EM DASH} Fig. 7 (WB stratified, WP/NA split): "
         f"{n_summary}. {qj_hovmoller.BASIN_SEASON['WP']} climatology",
-        fontsize=12,
+        fontsize=14,
         y=0.995,
     )
 

@@ -109,15 +109,15 @@ def main(
         tau_star=tau_star,
     )
 
-    fig = plt.figure(figsize=(18.5, 12.0))
+    fig = plt.figure(figsize=(19.5, 10.8))
     gs = fig.add_gridspec(
-        5, 3,
-        height_ratios=[0.5, 1.55, 0.5, 1.55, 0.22],
+        4, 3,
+        height_ratios=[0.5, 1.55, 1.55, 0.22],
         hspace=0.38,
         wspace=0.26,
         left=0.055,
         right=0.99,
-        top=0.93,
+        top=0.965,
         bottom=0.05,
     )
 
@@ -134,7 +134,7 @@ def main(
         else qj_hovmoller.HOVMOLLER_GAUSSIAN_SIGMA[1],
     )
 
-    n_wp = rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
+    _n_wp = rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
         storms_df=storms_df, basin="WP", reference=reference,
         n_mc=n_mc,
         n_workers=workers,
@@ -158,8 +158,9 @@ def main(
         gs=gs,
         hov_axes=hov_axes_wp,
         ims=ims_wp,
+        show_xlabel=False,
     )
-    n_na = rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
+    _n_na = rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
         storms_df=storms_df, basin="NA", reference=reference,
         n_mc=n_mc,
         n_workers=workers,
@@ -174,8 +175,8 @@ def main(
         clim_path_rwp=clim_rwp,
         clim_path_lwa=clim_lwa,
         full_tracks=full_tracks,
-        map_row=2,
-        hov_row=3,
+        map_row=-1,
+        hov_row=2,
         labels=("(d) NA \N{EM DASH} RWP frequency",
                 "(e) NA \N{EM DASH} RWP amplitude",
                 "(f) NA \N{EM DASH} raw LWA"),
@@ -183,9 +184,10 @@ def main(
         gs=gs,
         hov_axes=hov_axes_na,
         ims=ims_na,
+        show_minimap=False,
     )
 
-    gs_cb = gs[4, :].subgridspec(1, 3, wspace=0.45)
+    gs_cb = gs[3, :].subgridspec(1, 3, wspace=0.45)
     for j in range(3):
         _im_wp, levels, label = ims_wp[j]
         cax = fig.add_subplot(gs_cb[0, j])
@@ -197,17 +199,8 @@ def main(
             sm, cax=cax, orientation="horizontal",
             ticks=levels, extend="both",
         )
-        cb.ax.tick_params(labelsize=10)
-        cb.set_label(label, fontsize=11)
-
-    ref_lbl = {"recurvature": "Recurvature-relative",
-               "et": "ET-relative"}[reference]
-    fig.suptitle(
-        f"{ref_lbl} composites \N{EM DASH} WP (N={n_wp}) and NA (N={n_na}); "
-        f"{qj_hovmoller.BASIN_SEASON['WP']} climatology",
-        fontsize=13,
-        y=0.99,
-    )
+        cb.ax.tick_params(labelsize=15)
+        cb.set_label(label, fontsize=16)
 
     out = Path(output_directory) / figure_name.format(reference=reference)
     out.parent.mkdir(parents=True, exist_ok=True)

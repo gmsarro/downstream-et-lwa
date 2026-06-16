@@ -312,6 +312,9 @@ def scenario_rwp_lwa_row(
         basin: str = "WPNA",
         storm_relative: bool = False,
         show_minimap: bool = True,
+        title_fontsize: int = 14,
+        tick_labelsize: int = 13,
+        show_xlabel: bool = True,
 ) -> int:
     season = qj3.BASIN_SEASON.get(basin, qj3.BASIN_SEASON["WP"])
 
@@ -437,7 +440,7 @@ def scenario_rwp_lwa_row(
         for c in range(3):
             ax_m = fig.add_subplot(gs[map_row, c])
             qj3._draw_minimap(ax=ax_m)
-            ax_m.set_title("", fontsize=9)
+            ax_m.set_title("", fontsize=11)
 
     track_kw: dict[str, Any] = dict(
         lon_range=lon_range,
@@ -447,10 +450,11 @@ def scenario_rwp_lwa_row(
         show_lon_extent_hline=False,
     )
     kw: dict[str, Any] = dict(
-        tick_labelsize=11,
-        title_fontsize=12,
+        tick_labelsize=tick_labelsize,
+        title_fontsize=title_fontsize,
         with_colorbar=False,
         x_lon=x_lon,
+        show_xlabel=show_xlabel,
         **track_kw,
     )
     sig_f = None if smooth_mc_anomalies else F_anom * 100.0

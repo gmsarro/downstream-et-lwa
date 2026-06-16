@@ -66,10 +66,10 @@ SOURCE_CONFIG: dict[str, dict[str, Any]] = {
             "termII":   r"(c) Term II: meridional flux",
             "termIII":  r"(d) Term III",
             "residual": r"(e) Residual  (diabatic closure)",
-            "lh_lwa":   r"(f) LH source  (DTDTMST, moist)",
-            "rad_lwa":  r"(g) Radiation source  (DTDTRAD)",
-            "ana_lwa":  r"(h) Analysis increment  (DTDTANA)",
-            "tot_lwa":  r"(i) Total diabatic source  (DTDTTOT)",
+            "lh_lwa":   r"(f) LH source",
+            "rad_lwa":  r"(g) Radiation source",
+            "ana_lwa":  r"(h) Analysis increment",
+            "tot_lwa":  r"(i) Total diabatic source",
             "lwa_raw":  r"(j) Raw LWA anomaly",
             "nonqg_lwa": r"(a) Non-QG source (ERA5)",
         },
@@ -89,9 +89,9 @@ FIG4_ALT_PANEL_ORDER = ("nonqg_lwa", "lh_lwa", "rad_lwa", "ana_lwa")
 FIG4_MERRA_POSITIONS = [(0, 0), (0, 1), (1, 0), (1, 1)]
 FIG4_ALT_PANEL_TITLE = {
     "nonqg_lwa": r"(a) Non-QG source (ERA5)",
-    "lh_lwa":    r"(a) MERRA-2 latent heating (DTDTMST)",
-    "rad_lwa":   r"(a) MERRA-2 radiation (DTDTRAD)",
-    "ana_lwa":   r"(a) MERRA-2 analysis increment (DTDTANA)",
+    "lh_lwa":    r"(a) MERRA-2 latent heating",
+    "rad_lwa":   r"(a) MERRA-2 radiation",
+    "ana_lwa":   r"(a) MERRA-2 analysis increment",
 }
 
 PANEL_CBAR = {
@@ -523,6 +523,22 @@ def _add_wp_na_column_separator(*, fig: matplotlib.figure.Figure,
             color="black", linewidth=1.8, zorder=200, clip_on=False))
 
 
+def _add_wp_na_group_titles(*, fig: matplotlib.figure.Figure,
+                            ax_maps: list[matplotlib.axes.Axes],
+                            fontsize: int = 19) -> None:
+    if len(ax_maps) < 4:
+        return
+    fig.canvas.draw()
+    p0, p1, p2, p3 = [ax.get_position() for ax in ax_maps[:4]]
+    y = min(0.985, max(p.y1 for p in (p0, p1, p2, p3)) + 0.020)
+    fig.text(0.5 * (p0.x0 + p1.x1), y, "WP", fontsize=fontsize,
+             fontweight="bold", ha="center", va="top",
+             transform=fig.transFigure)
+    fig.text(0.5 * (p2.x0 + p3.x1), y, "NA", fontsize=fontsize,
+             fontweight="bold", ha="center", va="top",
+             transform=fig.transFigure)
+
+
 def wb_strat_storm_ids(*, classification_csv: Path,
                        reference: str,
                        wb_group: str) -> set[str]:
@@ -684,11 +700,11 @@ def _render_wp_na_budget_block(
                 title=title,
                 cbar_label=PANEL_CBAR[key],
                 with_colorbar=False,
-                title_fontsize=13,
-                tick_labelsize=10,
+                title_fontsize=16,
+                tick_labelsize=13,
                 title_pad=9,
                 show_xlabel=(pr == 2),
-                show_ylabel=(abs_col in (0, 2)),
+                show_ylabel=(abs_col == 0),
                 sig_field=st["anom"][key],
                 sig_mask=sig_basin.get(key) if sig_basin else None,
                 **track_kw,
@@ -738,12 +754,12 @@ def plot_budget_wp_na_combined(
         tracks_dir=tracks_dir,
     )
 
-    fig = plt.figure(figsize=(21.0, 10.9))
+    fig = plt.figure(figsize=(23.0, 12.4))
     outer = fig.add_gridspec(
         2, 1,
-        height_ratios=[0.92, 5.55],
+        height_ratios=[0.55, 5.55],
         hspace=0.14,
-        left=0.092, right=0.988, top=0.97, bottom=0.13,
+        left=0.055, right=0.94, top=0.95, bottom=0.08,
     )
     data_ax, ax_maps = _render_wp_na_budget_block(
         fig=fig, outer=outer, results=results, cfg=cfg, panel_keys=panel_keys,
@@ -753,17 +769,18 @@ def plot_budget_wp_na_combined(
     sm_b = matplotlib.cm.ScalarMappable(norm=norm_b, cmap=qj3._BWOR_8)
     sm_b.set_array(np.array([0.0]))
 
-    cax = fig.add_axes((0.10, 0.048, 0.80, 0.026))
+    cax = fig.add_axes((0.955, 0.20, 0.015, 0.60))
     cb = fig.colorbar(
-        sm_b, cax=cax, orientation="horizontal",
+        sm_b, cax=cax, orientation="vertical",
         ticks=budget_levels, extend="both",
     )
-    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=11)
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=16, labelpad=8)
+    cb.ax.tick_params(labelsize=14)
 
     fig.canvas.draw()
     _add_wp_na_column_separator(fig=fig, data_axes=data_ax, ax_maps=ax_maps,
                                 n_data_rows=3)
+    _add_wp_na_group_titles(fig=fig, ax_maps=ax_maps, fontsize=19)
 
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -855,20 +872,14 @@ def plot_budget_wp_na_wb_strat_high_low(
 
     budget_levels = BUDGET_LEVELS
 
-    fig = plt.figure(figsize=(21.0, 11.4))
+    fig = plt.figure(figsize=(23.0, 12.4))
     outer = fig.add_gridspec(
         2, 1,
-        height_ratios=[0.92, 5.55],
+        height_ratios=[0.55, 5.55],
         hspace=0.14,
-        left=0.092, right=0.988, top=0.93, bottom=0.13,
+        left=0.055, right=0.94, top=0.93, bottom=0.08,
     )
 
-    hatch_label = (
-        f"hatching: bootstrap-of-differences high\N{EN DASH}low (p<0.05, n_boot="
-        f"{int(n_bootstrap_diff)})"
-        if sig_diff is not None
-        else "hatching: per-group Monte-Carlo envelope vs climatology (95%)"
-    )
     fig.text(
         0.27, 0.965, title_high,
         fontsize=12, fontweight="semibold", ha="center",
@@ -887,32 +898,17 @@ def plot_budget_wp_na_wb_strat_high_low(
     norm_b = matplotlib.colors.BoundaryNorm(budget_levels, ncolors=qj3._BWOR_8.N)
     sm_b = matplotlib.cm.ScalarMappable(norm=norm_b, cmap=qj3._BWOR_8)
     sm_b.set_array(np.array([0.0]))
-    cax = fig.add_axes((0.12, 0.060, 0.76, 0.022))
+    cax = fig.add_axes((0.955, 0.20, 0.015, 0.60))
     cb = fig.colorbar(
-        sm_b, cax=cax, orientation="horizontal",
+        sm_b, cax=cax, orientation="vertical",
         ticks=budget_levels, extend="both",
     )
-    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=11, labelpad=4)
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=16, labelpad=8)
+    cb.ax.tick_params(labelsize=14)
 
     fig.canvas.draw()
     _add_wp_na_column_separator(fig=fig, data_axes=data_ax, ax_maps=ax_maps,
                                 n_data_rows=3)
-
-    n_hi = res_hi_raw["WPNA"]["n_storms"]
-    n_lo = res_lo_raw["WPNA"]["n_storms"]
-    fig.text(
-        0.5, 0.030,
-        f"{footer_label_high}:  WP+NA N={n_hi}    |    "
-        f"{footer_label_low}:  WP+NA N={n_lo}    |    {hatch_label}",
-        fontsize=10, ha="center", transform=fig.transFigure)
-    fig.text(
-        0.5, 0.012,
-        "Same smoothing and climatology as Fig. 3 (sigma_lag, sigma_lon)=(1.0, 2.5); "
-        "WP+NA pooled within each RWB stratum so panel magnitudes are "
-        "directly comparable to Fig. 3 / Fig. 4.",
-        fontsize=8, ha="center", style="italic", color="0.25",
-        transform=fig.transFigure)
 
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -998,12 +994,12 @@ def plot_merra2_fig4_wp_na_combined(
             track_kw=track_kw, n_storms=len(comp["ref_times"]),
         )
 
-    fig = plt.figure(figsize=(21.0, 8.6))
+    fig = plt.figure(figsize=(23.0, 10.1))
     outer = fig.add_gridspec(
         2, 1,
-        height_ratios=[0.88, 3.95],
+        height_ratios=[0.55, 3.95],
         hspace=0.14,
-        left=0.092, right=0.988, top=0.97, bottom=_fig4_bottom_margin,
+        left=0.055, right=0.94, top=0.95, bottom=0.08,
     )
     gs_maps = outer[0, 0].subgridspec(1, 4, wspace=0.20)
     gs_data = outer[1, 0].subgridspec(n_data_rows, 4, hspace=0.30, wspace=0.20)
@@ -1044,11 +1040,11 @@ def plot_merra2_fig4_wp_na_combined(
                 title=title,
                 cbar_label=PANEL_CBAR[key],
                 with_colorbar=False,
-                title_fontsize=13,
-                tick_labelsize=10,
+                title_fontsize=16,
+                tick_labelsize=13,
                 title_pad=9,
                 show_xlabel=(pr == last_row),
-                show_ylabel=(abs_col in (0, 2)),
+                show_ylabel=(abs_col == 0),
                 sig_field=st["anom"][key],
                 **track_kw,
             )
@@ -1066,17 +1062,18 @@ def plot_merra2_fig4_wp_na_combined(
     sm_b = matplotlib.cm.ScalarMappable(norm=norm_b, cmap=qj3._BWOR_8)
     sm_b.set_array(np.array([0.0]))
 
-    cax = fig.add_axes((0.10, 0.070, 0.80, 0.022))
+    cax = fig.add_axes((0.955, 0.24, 0.015, 0.52))
     cb = fig.colorbar(
-        sm_b, cax=cax, orientation="horizontal",
+        sm_b, cax=cax, orientation="vertical",
         ticks=BUDGET_LEVELS, extend="both",
     )
-    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=11, labelpad=1)
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=16, labelpad=8)
+    cb.ax.tick_params(labelsize=14)
 
     fig.canvas.draw()
     _add_wp_na_column_separator(fig=fig, data_axes=data_ax, ax_maps=ax_maps,
                                 n_data_rows=n_data_rows)
+    _add_wp_na_group_titles(fig=fig, ax_maps=ax_maps, fontsize=19)
 
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -1203,12 +1200,12 @@ def plot_fig4_alt_nonqg_wp_na(
             track_kw=track_kw, n_storms=len(ref_times),
         )
 
-    fig = plt.figure(figsize=(21.0, 8.6))
+    fig = plt.figure(figsize=(23.0, 10.1))
     outer = fig.add_gridspec(
         2, 1,
-        height_ratios=[0.88, 3.95],
+        height_ratios=[0.55, 3.95],
         hspace=0.14,
-        left=0.092, right=0.988, top=0.97, bottom=0.13,
+        left=0.055, right=0.94, top=0.95, bottom=0.08,
     )
     gs_maps = outer[0, 0].subgridspec(1, 4, wspace=0.20)
     gs_data = outer[1, 0].subgridspec(n_data_rows, 4, hspace=0.30, wspace=0.20)
@@ -1249,11 +1246,11 @@ def plot_fig4_alt_nonqg_wp_na(
                 title=title,
                 cbar_label=PANEL_CBAR[key],
                 with_colorbar=False,
-                title_fontsize=13,
-                tick_labelsize=10,
+                title_fontsize=16,
+                tick_labelsize=13,
                 title_pad=9,
                 show_xlabel=(pr == last_row),
-                show_ylabel=(abs_col in (0, 2)),
+                show_ylabel=(abs_col == 0),
                 sig_field=st_res["anom"][key],
                 **track_kw,
             )
@@ -1271,17 +1268,18 @@ def plot_fig4_alt_nonqg_wp_na(
     sm_b = matplotlib.cm.ScalarMappable(norm=norm_b, cmap=qj3._BWOR_8)
     sm_b.set_array(np.array([0.0]))
 
-    cax = fig.add_axes((0.10, 0.048, 0.80, 0.026))
+    cax = fig.add_axes((0.955, 0.24, 0.015, 0.52))
     cb = fig.colorbar(
-        sm_b, cax=cax, orientation="horizontal",
+        sm_b, cax=cax, orientation="vertical",
         ticks=BUDGET_LEVELS, extend="both",
     )
-    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=11)
-    cb.ax.tick_params(labelsize=9)
+    cb.set_label(r"Anomaly (m s$^{-1}$ day$^{-1}$)", fontsize=16, labelpad=8)
+    cb.ax.tick_params(labelsize=14)
 
     fig.canvas.draw()
     _add_wp_na_column_separator(fig=fig, data_axes=data_ax, ax_maps=ax_maps,
                                 n_data_rows=n_data_rows)
+    _add_wp_na_group_titles(fig=fig, ax_maps=ax_maps, fontsize=19)
 
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)

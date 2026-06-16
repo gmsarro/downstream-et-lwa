@@ -80,7 +80,7 @@ def main(
         else qj3.HOVMOLLER_GAUSSIAN_SIGMA[1],
     )
 
-    fig = plt.figure(figsize=(18.5, 12.0))
+    fig = plt.figure(figsize=(22.0, 13.0))
     gs = fig.add_gridspec(
         3, 3,
         height_ratios=[1.55, 1.55, 0.22],
@@ -124,6 +124,8 @@ def main(
         hov_axes=hov_axes,
         storm_relative=True,
         show_minimap=False,
+        title_fontsize=15,
+        tick_labelsize=14,
     )
 
     n_db_c = int(storms_curr["basin"].isin(("WP", "NA")).sum())
@@ -141,6 +143,7 @@ def main(
         ),
         ims=ims_curr,
         full_tracks=ft_curr,
+        show_xlabel=False,
         **common,
     )
 
@@ -174,8 +177,8 @@ def main(
             sm, cax=cax, orientation="horizontal",
             ticks=levels, extend="both",
         )
-        cb.ax.tick_params(labelsize=10)
-        cb.set_label(label, fontsize=11)
+        cb.ax.tick_params(labelsize=15)
+        cb.set_label(label, fontsize=16)
 
     out = Path(output_directory) / figure_name
     out.parent.mkdir(parents=True, exist_ok=True)

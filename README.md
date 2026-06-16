@@ -169,6 +169,37 @@ composites, strips, tracks, and climatologies produced by the pipeline.
 | 15–17 | `fig15_mpas_rwp_lwa_na_only.py`, `fig16_mpas_zonal_budget_na_only.py`, `fig17_mpas_budget_maps_na_only.py` |
 | 18 | `fig18_rwp_lwa_rw_strat.py` |
 
+### Latent-heating removal figures
+
+The counterfactual removal figures are generated from script-only commands in
+the `lh_removal` package. The repository does not include storm strips,
+composite NetCDF files, track CSVs, climatologies, or PNG output. Build those
+artifacts with the pipeline, then pass their locations explicitly:
+
+```bash
+downstream-et-lwa lh-composite-figure \
+    --tracks-file /path/to/recurving_nh_tracks.csv \
+    --individual-tracks-directory /path/to/individual_tracks \
+    --strip-directory /path/to/lh_removal_strips \
+    --climatology-file /path/to/lwa_climatology_jjason.nc \
+    --output-directory /path/to/figures
+
+downstream-et-lwa lh-composite-figure-rw-strat \
+    --tracks-file /path/to/recurving_nh_tracks.csv \
+    --individual-tracks-directory /path/to/individual_tracks \
+    --strip-directory /path/to/lh_removal_strips \
+    --climatology-file /path/to/lwa_climatology_jjason.nc \
+    --classification-file /path/to/rw_classification.csv \
+    --output-directory /path/to/figures
+
+downstream-et-lwa lh-fc-quantiles \
+    --tracks-file /path/to/recurving_nh_tracks.csv \
+    --individual-tracks-directory /path/to/individual_tracks \
+    --strip-directory /path/to/lh_removal_strips \
+    --capacity-params-file /path/to/capacity_params.npz \
+    --output-directory /path/to/figures
+```
+
 ## Input data
 
 The pipeline is dataset-agnostic: any source that can be brought to

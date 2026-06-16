@@ -354,8 +354,8 @@ def _render_block(
             title=title,
             cbar_label=cbar_lbl,
             with_colorbar=False,
-            title_fontsize=11,
-            tick_labelsize=9,
+            title_fontsize=15,
+            tick_labelsize=13,
             title_pad=7,
             show_xlabel=(pr == 2),
             show_ylabel=(pc == 0 and is_left),
@@ -401,12 +401,12 @@ def plot_mpas_fig10_zonal_budget(
 
     x_lim = (-25.0, 125.0)
 
-    fig = plt.figure(figsize=(20.0, 11.0))
+    fig = plt.figure(figsize=(24.0, 12.6))
     mega = fig.add_gridspec(
         1, 2,
         width_ratios=[1.0, 1.0],
         wspace=0.10,
-        left=0.06, right=0.985, top=0.97, bottom=0.13,
+        left=0.055, right=0.94, top=0.97, bottom=0.08,
     )
 
     ax_cur, _ = _render_block(
@@ -425,17 +425,17 @@ def plot_mpas_fig10_zonal_budget(
                                             ncolors=qj3._BWOR_8.N)
     sm_b = matplotlib.cm.ScalarMappable(norm=norm_b, cmap=qj3._BWOR_8)
     sm_b.set_array(np.array([0.0]))
-    cax_b = fig.add_axes((0.12, 0.055, 0.76, 0.024))
+    cax_b = fig.add_axes((0.955, 0.20, 0.015, 0.60))
     cb_b = fig.colorbar(
-        sm_b, cax=cax_b, orientation="horizontal",
+        sm_b, cax=cax_b, orientation="vertical",
         ticks=BUDGET_LEVELS, extend="both",
     )
     cb_b.set_label(
         r"Anomaly (m s$^{-1}$ day$^{-1}$)",
-        fontsize=13,
+        fontsize=17,
         labelpad=6,
     )
-    cb_b.ax.tick_params(labelsize=11)
+    cb_b.ax.tick_params(labelsize=15)
 
     fig.canvas.draw()
     pos_l = mega[0, 0].get_position(fig)

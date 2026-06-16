@@ -220,12 +220,12 @@ def make_composite_figure(*,
 
     common_kw: dict[str, Any] = dict(
         y_days=LAGS_D,
-        y_lim=(-1.5, 8.5),
+        y_lim=(-2, 7),
         show_lon_extent_hline=True,
         significance=False,
         with_colorbar=False,
-        tick_labelsize=11,
-        title_fontsize=12,
+        tick_labelsize=13,
+        title_fontsize=14,
     )
 
     def _block(*, map_row: int, hov_row: int,
@@ -237,7 +237,7 @@ def make_composite_figure(*,
             if map_row == 0:
                 ax_m.set_title(
                     "WP recurving TCs" if c == 0 else "NA recurving TCs",
-                    fontsize=11, loc="center", pad=2.0,
+                    fontsize=13, loc="center", pad=2.0,
                 )
 
         ax_left = fig.add_subplot(gs[hov_row, 0])
@@ -310,9 +310,9 @@ def make_composite_figure(*,
     cb.set_label(
         r"LWA anomaly / $\Delta\langle$LWA$\rangle$  (20-80N, m s$^{-1}$); "
         f"shared scale \N{PLUS-MINUS SIGN}{cbar_abs_max:g}",
-        fontsize=11,
+        fontsize=13,
     )
-    cb.ax.tick_params(labelsize=9)
+    cb.ax.tick_params(labelsize=11)
 
     if suptitle:
         yr_lo = int(df_pop["recurv_time"].dt.year.min())
@@ -325,7 +325,7 @@ def make_composite_figure(*,
             f"Gaussian sigma=(6 h, 2.5\N{DEGREE SIGN}))\n"
             "Top row: CTRL forward-integrated LWA anomaly "
             "(diverges from observed at long lead times)",
-            fontsize=11, y=0.985,
+            fontsize=13, y=0.985,
         )
 
     fig.savefig(output_path, dpi=170, bbox_inches="tight", facecolor="white")

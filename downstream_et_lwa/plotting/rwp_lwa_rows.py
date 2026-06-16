@@ -30,7 +30,7 @@ def _add_minimap(*, fig: matplotlib.figure.Figure,
                  row: int, col: int) -> matplotlib.axes.Axes:
     ax_m = fig.add_subplot(gs[row, col])
     qj_hovmoller._draw_minimap(ax=ax_m)
-    ax_m.set_title("", fontsize=9)
+    ax_m.set_title("", fontsize=11)
     return ax_m
 
 
@@ -59,6 +59,10 @@ def basin_plots_fig2_rwp_lwa(
         gs: matplotlib.gridspec.GridSpec,
         hov_axes: list[matplotlib.axes.Axes],
         ims: list[tuple[matplotlib.collections.QuadMesh, np.ndarray, str]],
+        show_minimap: bool = True,
+        title_fontsize: int = 15,
+        tick_labelsize: int = 14,
+        show_xlabel: bool = True,
 ) -> int:
     season = qj_hovmoller.BASIN_SEASON.get(basin, "JJASON")
 
@@ -144,14 +148,16 @@ def basin_plots_fig2_rwp_lwa(
         recurv_lon_mean=recurv_lon_mean,
     )
 
-    for c in range(3):
-        _add_minimap(fig=fig, gs=gs, row=map_row, col=c)
+    if show_minimap:
+        for c in range(3):
+            _add_minimap(fig=fig, gs=gs, row=map_row, col=c)
 
     kw: dict[str, Any] = dict(
-        tick_labelsize=11,
-        title_fontsize=12,
+        tick_labelsize=tick_labelsize,
+        title_fontsize=title_fontsize,
         with_colorbar=False,
         show_lon_extent_hline=(str(basin).upper() != "WPNA"),
+        show_xlabel=show_xlabel,
         **track_kw,
     )
     sig_f = None if smooth_mc_anomalies else F_anom * 100.0

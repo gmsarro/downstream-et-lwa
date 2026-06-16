@@ -244,12 +244,12 @@ def make_figure(*,
                 lon_range=p["lon_range"],
                 recurv_lon_mean=p["recurv_mean"],
                 y_days=composite_figure.LAGS_D,
-                y_lim=(-1.5, 8.5),
+                y_lim=(-2, 7),
                 show_lon_extent_hline=True,
                 significance=False,
                 with_colorbar=False,
-                tick_labelsize=10,
-                title_fontsize=10,
+                tick_labelsize=12,
+                title_fontsize=12,
                 show_xlabel=(r == 1),
                 show_ylabel=(c == 0),
             )
@@ -274,9 +274,9 @@ def make_figure(*,
     cb.set_label(
         r"$\Delta\langle$LWA$\rangle$  (20-80N, m s$^{-1}$); "
         f"shared scale \N{PLUS-MINUS SIGN}{cbar_abs_max:g}",
-        fontsize=11,
+        fontsize=13,
     )
-    cb.ax.tick_params(labelsize=9)
+    cb.ax.tick_params(labelsize=11)
 
     if suptitle:
         yr_lo = int(df_pop["recurv_time"].dt.year.min())
@@ -291,7 +291,7 @@ def make_figure(*,
             f"(absolute longitude; BARO_N ERA5; LN24 + NHN22; "
             f"local TC mask R = {tc_radius_deg:g}\N{DEGREE SIGN}; "
             f"Gaussian sigma=(6 h, 2.5\N{DEGREE SIGN}))",
-            fontsize=11, y=0.985,
+            fontsize=13, y=0.985,
         )
 
     fig.savefig(output_path, dpi=170, bbox_inches="tight", facecolor="white")

@@ -1219,12 +1219,12 @@ def _fig5_draw_panel(*, ax: matplotlib.axes.Axes,
         ax.set_box_aspect(dy / dx)
     ax.axhline(0, color="k", lw=0.3, ls=":")
     ax.axvline(0, color="k", lw=0.3, ls=":")
-    ax.set_title(title, fontsize=11, pad=2.5)
-    ax.tick_params(axis="both", labelsize=10, pad=1.5)
+    ax.set_title(title, fontsize=13, pad=2.5)
+    ax.tick_params(axis="both", labelsize=12, pad=1.5)
     if ylabel:
-        ax.set_ylabel("rel. lat (\u00b0)", fontsize=10, labelpad=1.5)
+        ax.set_ylabel("rel. lat (\u00b0)", fontsize=12, labelpad=1.5)
     if xlabel:
-        ax.set_xlabel("rel. lon (\u00b0)", fontsize=10, labelpad=1.5)
+        ax.set_xlabel("rel. lon (\u00b0)", fontsize=12, labelpad=1.5)
     return cf
 
 
@@ -1640,7 +1640,7 @@ def plot_budget_wp_na_fig5(
                      transform=fig.transFigure)
 
     def _vbar(rect: tuple[float, float, float, float], cf: Any, label: str,
-              ticks: Any = None, label_fs: int = 11, tick_fs: int = 10,
+              ticks: Any = None, label_fs: int = 13, tick_fs: int = 12,
               extend: str = "both") -> None:
         axv = fig.add_axes(rect)
         cb = fig.colorbar(cf, cax=axv, orientation="vertical", extend=extend)
@@ -1662,27 +1662,26 @@ def plot_budget_wp_na_fig5(
         cbar_x = 0.84
         cbar_w = 0.020
         cbar_h = 0.10
+        _vbar((cbar_x, 0.80, cbar_w, cbar_h), hbar_cf["lwa"],
+              r"LWA (m s$^{-1}$)",
+              ticks=[20, 35, 50, 65], extend="both")
         if cf_budget_ref is not None:
-            _vbar((cbar_x, 0.55, cbar_w, 0.35), cf_budget_ref,
+            _vbar((cbar_x, 0.43, cbar_w, 0.32), cf_budget_ref,
                   r"Anom. (m s$^{-1}$ d$^{-1}$)" if budget_rates_ms_day
                   else r"$\Delta$ (m s$^{-1}$)",
-                  ticks=budget_levels, label_fs=11, tick_fs=10)
-        _vbar((cbar_x, 0.42, cbar_w, cbar_h), hbar_cf["lwa"],
-              r"LWA (m s$^{-1}$)",
-              ticks=[20, 35, 50, 65], label_fs=11, tick_fs=10, extend="both")
-        _vbar((cbar_x, 0.29, cbar_w, cbar_h), hbar_cf["fc"],
+                  ticks=budget_levels)
+        _vbar((cbar_x, 0.30, cbar_w, cbar_h), hbar_cf["fc"],
               r"$F_c$ (m$^2$ s$^{-2}$)",
-              ticks=[0, 50, 100, 150], label_fs=11, tick_fs=10, extend="max")
+              ticks=[0, 50, 100, 150], extend="max")
         if include_bottom_row:
-            _vbar((cbar_x, 0.16, cbar_w, cbar_h), hbar_cf["pr"],
+            _vbar((cbar_x, 0.17, cbar_w, cbar_h), hbar_cf["pr"],
                   r"Precip (mm/hr)",
-                  ticks=[0, 0.2, 0.4, 0.6], label_fs=11, tick_fs=10,
-                  extend="max")
+                  ticks=[0, 0.2, 0.4, 0.6], extend="max")
             rwb_key = "rwb" if use_rwb_nonqg else "awb"
             rwb_label = "RWB freq" if use_rwb_nonqg else "AWB/CWB"
-            _vbar((cbar_x, 0.03, cbar_w, cbar_h), hbar_cf[rwb_key],
+            _vbar((cbar_x, 0.04, cbar_w, cbar_h), hbar_cf[rwb_key],
                   rwb_label,
-                  ticks=[0, 0.1, 0.2], label_fs=11, tick_fs=10, extend="max")
+                  ticks=[0, 0.1, 0.2], extend="max")
     else:
         if cf_budget_ref is not None:
             cax_y0, cax_h = ((0.20, 0.58) if not include_bottom_row
@@ -2035,15 +2034,15 @@ def plot_budget_diff_fig(
     cbar_x = 0.84
     cbar_w = 0.018
     cbar_h = 0.09
+    _vbar((cbar_x, 0.80, cbar_w, cbar_h), hbar_cf["lwa"],
+          "\N{GREEK CAPITAL LETTER DELTA}LWA",
+          ticks=[-10, 0, 10], label_fs=10, tick_fs=9)
     if cf_budget_ref is not None:
-        _vbar((cbar_x, 0.58, cbar_w, 0.32), cf_budget_ref,
+        _vbar((cbar_x, 0.46, cbar_w, 0.28), cf_budget_ref,
               ("\N{GREEK CAPITAL LETTER DELTA} (m s$^{-1}$ d$^{-1}$)"
                if budget_rates_ms_day
                else "\N{GREEK CAPITAL LETTER DELTA} (m s$^{-1}$)"),
               ticks=[-4, -2, 0, 2, 4], label_fs=10, tick_fs=9)
-    _vbar((cbar_x, 0.46, cbar_w, cbar_h), hbar_cf["lwa"],
-          "\N{GREEK CAPITAL LETTER DELTA}LWA",
-          ticks=[-10, 0, 10], label_fs=10, tick_fs=9)
     _vbar((cbar_x, 0.34, cbar_w, cbar_h), hbar_cf["fc"],
           "\N{GREEK CAPITAL LETTER DELTA}$F_c$",
           ticks=[-30, 0, 30], label_fs=10, tick_fs=9)

@@ -111,12 +111,13 @@ def make_rw_strat_figure(*,
     lon_rng_rw, recurv_rw = _recurv_stats(df_b=df_rw)
     lon_rng_no, recurv_no = _recurv_stats(df_b=df_no)
 
-    fig = plt.figure(figsize=(14.0, 18.5))
+    fig = plt.figure(figsize=(15.2, 16.8))
     gs = fig.add_gridspec(
-        nrows=7, ncols=2,
-        height_ratios=[0.40, 2.20, 0.40, 2.20, 0.40, 2.20, 0.42],
-        hspace=0.18, wspace=0.20,
-        left=0.07, right=0.965, top=0.96, bottom=0.06,
+        nrows=4, ncols=3,
+        width_ratios=[1.0, 1.0, 0.08],
+        height_ratios=[0.34, 1.85, 1.85, 1.85],
+        hspace=0.34, wspace=0.20,
+        left=0.06, right=0.94, top=0.98, bottom=0.06,
     )
 
     shared_levels = np.linspace(-float(cbar_abs_max), float(cbar_abs_max),
@@ -124,25 +125,25 @@ def make_rw_strat_figure(*,
 
     common_kw: dict[str, Any] = dict(
         y_days=composite_figure.LAGS_D,
-        y_lim=(-1.5, 8.5),
+        y_lim=(-2, 7),
         show_lon_extent_hline=True,
         significance=False,
         with_colorbar=False,
-        tick_labelsize=11,
-        title_fontsize=15,
+        tick_labelsize=14,
+        title_fontsize=18,
     )
 
     def _block(*, map_row: int, hov_row: int,
                panels: tuple[np.ndarray, np.ndarray],
                titles: tuple[str, str]) -> None:
-        for c in range(2):
-            ax_m = fig.add_subplot(gs[map_row, c])
-            composite_helpers._draw_minimap(ax=ax_m)
-            if map_row == 0:
+        if map_row == 0:
+            for c in range(2):
+                ax_m = fig.add_subplot(gs[map_row, c])
+                composite_helpers._draw_minimap(ax=ax_m)
                 ax_m.set_title(
                     "WP RW case (top quintile)" if c == 0
                     else "WP no-RW case (bottom quintile)",
-                    fontsize=14, loc="center", pad=2.0,
+                    fontsize=20, fontweight="bold", loc="center", pad=2.0,
                 )
         ax_left = fig.add_subplot(gs[hov_row, 0])
         composite_helpers._hovmoller_panel(
@@ -174,11 +175,11 @@ def make_rw_strat_figure(*,
     _block(
         map_row=0, hov_row=1,
         panels=(ctrl_rw_s, ctrl_no_s),
-        titles=(f"(a) WP RW - CTRL reconstruction LWA anomaly  (N={n_rw})",
-                f"(b) WP no-RW - CTRL reconstruction LWA anomaly  (N={n_no})"),
+        titles=("(a) WP RW - CTRL reconstruction LWA anomaly",
+                "(b) WP no-RW - CTRL reconstruction LWA anomaly"),
     )
     _block(
-        map_row=2, hov_row=3,
+        map_row=-1, hov_row=2,
         panels=(dRp_rw_s, dRp_no_s),
         titles=(
             "(c) WP RW - $\\Delta A$ = CTRL $-$ NoR$^+$ (local TC R$^+$)",
@@ -186,7 +187,7 @@ def make_rw_strat_figure(*,
         ),
     )
     _block(
-        map_row=4, hov_row=5,
+        map_row=-1, hov_row=3,
         panels=(dLH_rw_s, dLH_no_s),
         titles=(
             "(e) WP RW - $\\Delta A$ = CTRL $-$ NoLH (local TC LH)",
@@ -194,25 +195,17 @@ def make_rw_strat_figure(*,
         ),
     )
 
-    cb_outer = fig.add_subplot(gs[6, :])
-    cb_outer.set_axis_off()
-    bb = cb_outer.get_position()
-    cax = fig.add_axes((
-        bb.x0 + 0.12 * bb.width,
-        bb.y0 + 0.15 * bb.height,
-        0.76 * bb.width,
-        0.55 * bb.height,
-    ))
+    cax = fig.add_subplot(gs[1:, 2])
     norm = matplotlib.colors.BoundaryNorm(shared_levels,
                                           ncolors=composite_helpers._BWOR_8.N)
     sm = matplotlib.cm.ScalarMappable(norm=norm, cmap=composite_helpers._BWOR_8)
     sm.set_array([])
     cb = fig.colorbar(
-        sm, cax=cax, orientation="horizontal",
+        sm, cax=cax, orientation="vertical",
         ticks=shared_levels, extend="both",
     )
-    cb.set_label("LWA", fontsize=13)
-    cb.ax.tick_params(labelsize=11)
+    cb.set_label("LWA", fontsize=17, labelpad=8)
+    cb.ax.tick_params(labelsize=14)
 
     fig.savefig(output_path, dpi=170, bbox_inches="tight", facecolor="white")
     plt.close(fig)

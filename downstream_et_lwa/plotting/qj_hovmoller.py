@@ -485,11 +485,11 @@ def _hovmoller_panel(*, ax: matplotlib.axes.Axes, data: np.ndarray,
                      mean_track_lag: Any = None,
                      mean_track_lon: Any = None,
                      recurv_lon_mean: Any = None,
-                     y_lim: tuple[float, float] = (-6, 8),
+                     y_lim: tuple[float, float] = (-2, 7),
                      tick_pad: float = 0.1,
                      with_colorbar: bool = True,
-                     tick_labelsize: int = 10,
-                     title_fontsize: int = 11,
+                     tick_labelsize: int = 12,
+                     title_fontsize: int = 13,
                      title_pad: float | None = None,
                      show_xlabel: bool = True,
                      show_ylabel: bool = True,
@@ -680,7 +680,7 @@ def _draw_minimap(*, ax: matplotlib.axes.Axes) -> None:
                    alpha=0.75, zorder=0)
     ax.set_xticks([])
     ax.set_yticks([30, 60])
-    ax.set_yticklabels(["30\N{DEGREE SIGN}N", "60\N{DEGREE SIGN}N"], fontsize=8)
+    ax.set_yticklabels(["30\N{DEGREE SIGN}N", "60\N{DEGREE SIGN}N"], fontsize=10)
     _natural_earth_coastlines_lon360(ax=ax, resolution="110m")
 
 
