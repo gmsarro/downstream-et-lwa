@@ -4,6 +4,7 @@
   "era5_nonqg": "/path/to/era5/nonqg_lwa",
   "era5_raw": "/path/to/era5/raw_6hrly",
   "era5_qgpv": "/path/to/era5/qgpv",
+  "era5_1deg": "/path/to/era5/1deg_extracted",
   "era5_rwb": "/path/to/era5/rwb_masks",
   "era5_cc_npz": "/path/to/era5/carrying_capacity/era5_monthly_clim_params.npz",
   "merra2_baro": "/path/to/merra2/baro_n",

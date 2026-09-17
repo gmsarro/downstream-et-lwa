@@ -1,5 +1,10 @@
 """Paper Fig. 18: WP-only RW-case and no-RW-case Hovmoller rows (RWP
-frequency, RWP amplitude, raw LWA), absolute longitude as in Fig. 2."""
+frequency, RWP amplitude, raw LWA), absolute longitude as in Fig. 2.
+
+``--basin NA`` reproduces the reviewer-only North Atlantic sensitivity
+check (requires a classification CSV built for the NA pool with
+``downstream_et_lwa.classification.rw --basins NA``).
+"""
 
 from __future__ import annotations
 
@@ -57,6 +62,9 @@ def main(
                  "<lwa-directory>/lwa_climatology.nc)")] = None,
         reference: Annotated[str, typer.Option(
             help="recurvature or et")] = "recurvature",
+        basin: Annotated[str, typer.Option(
+            help="Basin of the stratified pool (paper: WP; NA is a "
+                 "reviewer-only sensitivity check)")] = "WP",
         n_mc: Annotated[int, typer.Option()] = 300,
         n_workers: Annotated[Optional[int], typer.Option()] = None,
         rwp_strip_year_start: Annotated[int, typer.Option()] = 2000,
@@ -98,11 +106,12 @@ def main(
         raise SystemExit("Empty RW or no-RW set; rerun classifier.")
 
     storms_rw = storms_df[
-        (storms_df["storm_id"].isin(rw_ids)) & (storms_df["basin"] == "WP")
+        (storms_df["storm_id"].isin(rw_ids)) & (storms_df["basin"] == basin)
     ].copy()
     storms_no = storms_df[
-        (storms_df["storm_id"].isin(no_ids)) & (storms_df["basin"] == "WP")
+        (storms_df["storm_id"].isin(no_ids)) & (storms_df["basin"] == basin)
     ].copy()
+    n_rw, n_no = len(storms_rw), len(storms_no)
 
     clim_rwp = (rwp_climatology_path if rwp_climatology_path is not None
                 else Path(rwp_directory) / "rwp_climatology.nc")
@@ -137,14 +146,14 @@ def main(
         left=0.055, right=0.99, top=0.965, bottom=0.05,
     )
 
-    print(f"Building RW row (WP, N={len(storms_rw)})...", flush=True)
+    print(f"Building RW row ({basin}, N={n_rw})...", flush=True)
     ims_rw: list = []
     rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
-        storms_df=storms_rw, basin="WP", reference=reference,
+        storms_df=storms_rw, basin=basin, reference=reference,
         map_row=0, hov_row=1,
-        labels=("(a) RW case (WP) \N{EM DASH} RWP frequency",
-                "(b) RW case (WP) \N{EM DASH} RWP amplitude",
-                "(c) RW case (WP) \N{EM DASH} raw LWA"),
+        labels=(f"(a) RW case ({basin}, N={n_rw}) \N{EM DASH} RWP frequency",
+                f"(b) RW case ({basin}, N={n_rw}) \N{EM DASH} RWP amplitude",
+                f"(c) RW case ({basin}, N={n_rw}) \N{EM DASH} raw LWA"),
         hov_axes=[], ims=ims_rw,
         n_mc=n_mc,
         n_workers=workers,
@@ -165,14 +174,14 @@ def main(
         tick_labelsize=15,
         show_xlabel=False,
     )
-    print(f"Building no-RW row (WP, N={len(storms_no)})...", flush=True)
+    print(f"Building no-RW row ({basin}, N={n_no})...", flush=True)
     ims_no: list = []
     rwp_lwa_rows.basin_plots_fig2_rwp_lwa(
-        storms_df=storms_no, basin="WP", reference=reference,
+        storms_df=storms_no, basin=basin, reference=reference,
         map_row=-1, hov_row=2,
-        labels=("(d) no-RW case (WP) \N{EM DASH} RWP frequency",
-                "(e) no-RW case (WP) \N{EM DASH} RWP amplitude",
-                "(f) no-RW case (WP) \N{EM DASH} raw LWA"),
+        labels=(f"(d) no-RW case ({basin}, N={n_no}) \N{EM DASH} RWP frequency",
+                f"(e) no-RW case ({basin}, N={n_no}) \N{EM DASH} RWP amplitude",
+                f"(f) no-RW case ({basin}, N={n_no}) \N{EM DASH} raw LWA"),
         hov_axes=[], ims=ims_no,
         n_mc=n_mc,
         n_workers=workers,

@@ -63,6 +63,7 @@ downstream-et-lwa/
 ├── figures/                      # Paper figure scripts (standalone CLIs)
 ├── fortran/
 │   └── ageo/                     # Ageostrophic (non-QG) LWA source
+├── tools/                        # One-off maintenance utilities (legacy sign fix)
 ├── data_config.example.json      # Template for dataset locations
 └── pyproject.toml
 ```
@@ -86,6 +87,20 @@ reproducible with falwa and is compiled separately:
 
 ```bash
 cd fortran/ageo && ./build.sh
+```
+
+**Sign convention of `aout_baro` (fixed 2026-09-17).** `aout_baro` is the
+LWA tendency produced by the ageostrophic PV forcing
+(`S_q = d<A>cos(phi)/dt`, positive = LWA increase), obtained by applying the
+same equivalent-latitude operator that defines LWA to the forcing.  Releases
+before this date accumulated the two branches of that operator with reversed
+signs and therefore stored `-S_q`; fixed files carry the global attribute
+`aout_sign_convention = "lwa_tendency"`, which the loaders now require.
+Bring existing outputs (monthly `*_AOUTbaro_N.nc`, Hovmöller strips and
+their climatology, 2-D composites) to the new convention in place with
+
+```bash
+python tools/fix_legacy_aout_sign.py /path/to/*_AOUTbaro_N.nc /path/to/budget_strips_era5_*.nc ...
 ```
 
 ## Pipeline
@@ -153,21 +168,30 @@ Each script in `figures/` is a standalone typer CLI; run with `--help` for
 its options. All take `--output-directory` and the locations of the
 composites, strips, tracks, and climatologies produced by the pipeline.
 
-| Figure | Script |
-|--------|--------|
-| 1 | `fig01_track_map.py` |
-| 2 | `fig02_rwp_lwa_wp_na.py` |
-| 3 | `fig03_lwa_budget_wp_na.py` |
-| 4 | `fig04_lwa_merra2_wp_na.py` |
-| 5 (+diff, 5b) | `fig05_budget_maps_wp_na.py`, `fig05_budget_maps_diff.py`, `fig05b_merra2_diabatic_wp_na.py` |
-| 5c | `lh-composite-figure`, `lh-fc-quantiles` (CLI commands) |
-| 6 (+diff) | `fig06_budget_maps_rw_strat.py`, `fig06_budget_maps_rw_strat_diff.py`, `fig06_budget_maps_wb_strat.py` |
-| 7 | `fig07_rwp_lwa_wb_strat.py` |
-| 8 | `fig08_lwa_budget_rw_strat.py`, `fig08_lwa_budget_wb_strat.py` |
-| 9–11 | `fig09_mpas_rwp_lwa.py`, `fig10_mpas_zonal_budget.py`, `fig11_mpas_budget_maps.py` (+`_diff`) |
-| 12–14 | `fig12_mpas_rwp_lwa_wp_only.py`, `fig13_mpas_zonal_budget_wp_only.py`, `fig14_mpas_budget_maps_wp_only.py` (+`_diff`) |
-| 15–17 | `fig15_mpas_rwp_lwa_na_only.py`, `fig16_mpas_zonal_budget_na_only.py`, `fig17_mpas_budget_maps_na_only.py` |
-| 18 | `fig18_rwp_lwa_rw_strat.py` |
+Script names follow the figure numbering of the originally submitted
+manuscript; the "R1" column gives the figure number in the revised
+manuscript (Journal of Climate, JCLI-D-26-0374, revision 1).
+
+| Script no. | R1 figure | Script |
+|-----------:|:---------:|--------|
+| 1 | 1 | `fig01_track_map.py` |
+| 2 | 2 | `fig02_rwp_lwa_wp_na.py` |
+| 3 | 3 | `fig03_lwa_budget_wp_na.py` |
+| 4 | 4 | `fig04_lwa_merra2_wp_na.py` |
+| 5 (+diff, 5b) | 5 (diff), D1 (per-basin) | `fig05_budget_maps_wp_na.py`, `fig05_budget_maps_diff.py`, `fig05b_merra2_diabatic_wp_na.py` |
+| 5c (new in R1) | 6 | `fig05c_jet_waveguide_wp_na.py` — storm-relative 250-hPa jet, $F_c$ and 10-km QGPV waveguide for WP and NA (needs the `era5_u250_1deg` composites) |
+| LH removal | 9 | `lh-composite-figure-rw-strat`, `lh-fc-quantiles` (CLI commands) |
+| 6 (+diff) | 8 (diff), D2 (per-stratum) | `fig06_budget_maps_rw_strat.py`, `fig06_budget_maps_rw_strat_diff.py`, `fig06_budget_maps_wb_strat.py` |
+| 7 | – | `fig07_rwp_lwa_wb_strat.py` |
+| 8 | – | `fig08_lwa_budget_rw_strat.py`, `fig08_lwa_budget_wb_strat.py` |
+| 9–11 | 10–12, D3 | `fig09_mpas_rwp_lwa.py`, `fig10_mpas_zonal_budget.py`, `fig11_mpas_budget_maps.py` (+`_diff`) |
+| 12–14 | – | `fig12_mpas_rwp_lwa_wp_only.py`, `fig13_mpas_zonal_budget_wp_only.py`, `fig14_mpas_budget_maps_wp_only.py` (+`_diff`) |
+| 15–17 | – | `fig15_mpas_rwp_lwa_na_only.py`, `fig16_mpas_zonal_budget_na_only.py`, `fig17_mpas_budget_maps_na_only.py` |
+| 18 | 7 | `fig18_rwp_lwa_rw_strat.py` (`--basin NA` gives the reviewer-only NA check) |
+
+Reviewer-only sensitivity figures of the R1 response (WP pool subsampled to
+the NA size; NA RW/no-RW stratification) are produced with the same scripts
+by passing a filtered track list / classification CSV.
 
 ### Latent-heating removal figures
 
