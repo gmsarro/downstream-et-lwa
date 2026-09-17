@@ -22,6 +22,10 @@ import numpy as np
 import typer
 
 import downstream_et_lwa.constants as constants
+from downstream_et_lwa.data_registry import (
+    LegacySignConventionError,
+    check_nonqg_sign_convention,
+)
 
 _LOG = logging.getLogger(__name__)
 
@@ -139,7 +143,12 @@ def _read_source_term(
         return None
     try:
         with netCDF4.Dataset(path, "r") as d:
+            if key == "nonqg_lwa":
+                # Legacy AOUT files store -S_q; refuse them loudly.
+                check_nonqg_sign_convention(d, str(path))
             arr = np.asarray(d[nc_var][:], dtype=np.float32)
+    except LegacySignConventionError:
+        raise
     except Exception:
         _LOG.exception("Failed reading source term %s from %s", key, path)
         return None

@@ -180,6 +180,11 @@ def save_composites(
             elif premean_volume_sigma_3d is not None:
                 ds.premean_gaussian_sigma_rel_lat_rel_lon_lag = ",".join(
                     str(float(x)) for x in premean_volume_sigma_3d)
+            if any("nonqg" in str(k) for k in accum.var_keys):
+                # Non-QG source composited from sign-checked monthly files
+                # (data_registry.check_nonqg_sign_convention); mark it so
+                # tools/fix_legacy_aout_sign.py never flips this file again.
+                ds.nonqg_sign_convention = "lwa_tendency"
 
         _LOG.info("Saved: %s (%d storms, %d variables)",
                   path, n_storms, len(accum.var_keys))

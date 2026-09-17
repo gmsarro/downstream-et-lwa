@@ -3,6 +3,17 @@
         use NETCDF
 
 !   ageostrophic LWA source S_q = LWA-projection of  - nabla.(va.zeta) - beta.va
+!
+!   SIGN CONVENTION (fixed 2026-09-17): AOUT is the rate of change of
+!   LWA*cos(phi) produced by FORCE, i.e. the same equivalent-latitude
+!   operator that defines LWA (A cos(phi) = -a * int_0^{dphi} q_e cos dphi')
+!   applied to the PV forcing FORCE instead of q_e:
+!       poleward branch   (q_e <= 0, jj >= j):  AOUT -= FORCE * a dphi cos(phi')
+!       equatorward branch(q_e >  0, jj <  j):  AOUT += FORCE * a dphi cos(phi')
+!   so that a PV forcing that damps q_e toward q_REF yields AOUT < 0.
+!   Files written before this fix (no global attribute
+!   'aout_sign_convention') hold -AOUT; see tools/fix_legacy_aout_sign.py.
+!
 !   Climatology version: takes (year, month) as command-line args.
 !   Saves a single monthly NetCDF with  AOUT_baro (column-integrated, density-
 !   weighted)  and LWA_baro (= astar1+astar2 column avg) for the barotropic
@@ -271,15 +282,17 @@
                     do jj = 1, nd
                        phi1 = dp*float(jj-1)
                        aa = a*dp*cos(phi1)
+!  AOUT uses the same signs as the LWA operator (astar1/astar2) applied to
+!  FORCE, so that AOUT = d(LWA cos phi)/dt due to FORCE.
                        if ((pv(i,jj+90,k)-qref(j,k)).le.0. .and. jj.ge.j) then
                           astar2(i,j,k) = astar2(i,j,k)                     &
                                   - (pv(i,jj+90,k)-qref(j,k))*aa
-                          aout(i,j,k)   = aout(i,j,k) + force(i,jj+90,k)*aa
+                          aout(i,j,k)   = aout(i,j,k) - force(i,jj+90,k)*aa
                        endif
                        if ((pv(i,jj+90,k)-qref(j,k)).gt.0. .and. jj.lt.j) then
                           astar1(i,j,k) = astar1(i,j,k)                     &
                                   + (pv(i,jj+90,k)-qref(j,k))*aa
-                          aout(i,j,k)   = aout(i,j,k) - force(i,jj+90,k)*aa
+                          aout(i,j,k)   = aout(i,j,k) + force(i,jj+90,k)*aa
                        endif
                     enddo
 
@@ -320,6 +333,8 @@
         status = nf90_put_att(ncid, vid_aout, 'long_name',                   &
                               'LWA-projected ageostrophic forcing, density-weighted column average')
         status = nf90_put_att(ncid, vid_aout, 'units', 'm s-2')
+        status = nf90_put_att(ncid, vid_aout, 'comment',                     &
+                              'd(LWA cos phi)/dt due to -beta va - div_h(va zeta); positive = LWA increase')
         status = nf90_def_var(ncid, 'lwa_baro',  nf90_float,                 &
                               (/dim_lon, dim_lat, dim_time/), vid_lwa)
         status = nf90_put_att(ncid, vid_lwa, 'long_name',                    &
@@ -337,6 +352,8 @@
         status = nf90_put_att(ncid, NF90_GLOBAL, 'dt_hours', 6)
         status = nf90_put_att(ncid, NF90_GLOBAL, 'vert_k_range', '11..95')
         status = nf90_put_att(ncid, NF90_GLOBAL, 'vert_z_range_km', '5..47')
+        status = nf90_put_att(ncid, NF90_GLOBAL, 'aout_sign_convention',     &
+                              'lwa_tendency')
         status = nf90_enddef(ncid)
         status = nf90_put_var(ncid, vid_aout,  aout_baro)
         status = nf90_put_var(ncid, vid_lwa,   lwa_baro)

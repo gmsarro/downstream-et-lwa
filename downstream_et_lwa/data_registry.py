@@ -62,6 +62,31 @@ def list_keys(*, category: str | None = None, source: str | None = None) -> list
     return sorted(out)
 
 
+# ── Non-QG (ageostrophic) source sign convention ─────────────────────────
+
+NONQG_SIGN_ATTR = "aout_sign_convention"
+NONQG_SIGN_VALUE = "lwa_tendency"
+
+
+class LegacySignConventionError(RuntimeError):
+    """A ``*_AOUTbaro_N.nc`` file predates the 2026-09-17 sign fix.
+
+    Files written by the old ``fortran/ageo/ageo_lwa_source.f90`` store
+    ``-S_q``: the LWA projection was accumulated with the signs of the two
+    equivalent-latitude branches reversed.  Fixed files carry the global
+    attribute ``aout_sign_convention = "lwa_tendency"``.
+    """
+
+
+def check_nonqg_sign_convention(ds_nc, path: str) -> None:
+    """Raise :class:`LegacySignConventionError` for pre-fix AOUT files."""
+    if getattr(ds_nc, NONQG_SIGN_ATTR, None) != NONQG_SIGN_VALUE:
+        raise LegacySignConventionError(
+            f"{path} lacks {NONQG_SIGN_ATTR}='{NONQG_SIGN_VALUE}' and therefore "
+            "stores -S_q.  Run tools/fix_legacy_aout_sign.py on it, or recompute "
+            "it with the fixed fortran/ageo/ageo_lwa_source.f90.")
+
+
 def load_data_config(*, path: Path) -> dict[str, str]:
     with open(path) as fh:
         cfg = json.load(fh)
@@ -133,6 +158,16 @@ def _find_era5_raw(*, root: str | None) -> Callable[[int, int], str | None]:
     return finder
 
 
+def _find_era5_1deg(*, root: str | None) -> Callable[[int, int], str | None]:
+    """ERA5 1-degree NH monthly extracts written by ``extract-era5-1deg``."""
+    def finder(year: int, month: int) -> str | None:
+        if root is None:
+            return None
+        path = f"{root}/{month:02d}_{year}.nc"
+        return path if os.path.exists(path) else None
+    return finder
+
+
 def _find_era5_qgpv(*, root: str | None) -> Callable[[int, int], str | None]:
     def finder(year: int, month: int) -> str | None:
         if root is None:
@@ -198,6 +233,9 @@ def load_snapshot(
             if cache is not None:
                 cache[path] = ds_nc
 
+        if source.category == "nonqg_lwa":
+            check_nonqg_sign_convention(ds_nc, path)
+
         var = ds_nc[source.nc_var]
 
         if source.time_encoding == "time_x_month":
@@ -233,6 +271,8 @@ def load_snapshot(
 
         return data.astype(np.float64)
 
+    except LegacySignConventionError:
+        raise
     except Exception:
         _LOG.exception("Failed reading %s from %s at %s", source.key, path, target_dt)
         return None
@@ -360,6 +400,24 @@ def register_all(*, data_config: Mapping[str, str]) -> None:
                 needs_regrid=True,
                 level_index=plev_idx,
             ))
+
+    # ERA5 1-degree NH extracts of u/v at 250 hPa (``extract-era5-1deg``).
+    # Fast alternative to the 0.25-degree raw files above; used for the
+    # storm-relative jet / waveguide composite (paper Fig. 6,
+    # ``figures/fig05c_jet_waveguide_wp_na.py``).
+    era5_1deg = data_config.get("era5_1deg")
+    for raw_var in ["u250", "v250"]:
+        register(source=DataSource(
+            key=f"era5_{raw_var}_1deg",
+            long_name=(f"ERA5 {raw_var[0]} at {raw_var[1:]} hPa "
+                       "(1-degree NH extract)"),
+            source="era5", category="raw_1deg",
+            file_finder=_find_era5_1deg(root=era5_1deg),
+            nc_var=raw_var,
+            time_encoding="flat",
+            native_grid=grid_utils.GRID_1DEG_NH,
+            units="m/s",
+        ))
 
     register(source=DataSource(
         key="era5_qgpv_10km",
