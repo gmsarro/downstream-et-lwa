@@ -133,6 +133,23 @@ def lookup_strip(
     return data_cache.get(key)
 
 
+def _round_to_6h(ts: pd.Timestamp) -> pd.Timestamp:
+    """Snap a timestamp to the nearest 6-hourly synoptic time (00/06/12/18 UTC).
+
+    IBTrACS positions are 3-hourly, so roughly half of the recurvature times
+    fall at 03/09/15/21 UTC.  The envelope cache is keyed on exact 6-hourly
+    times; without this snap those storms would silently receive no data and
+    be dropped from the classification.  This matches the convention of the
+    2-D composite engine and the Hovmöller composites.
+    """
+    dt = ts.to_pydatetime()
+    hr = int(round(dt.hour / 6.0)) * 6
+    if hr == 24:
+        dt = dt + datetime.timedelta(days=1)
+        hr = 0
+    return pd.Timestamp(dt.replace(hour=hr, minute=0, second=0, microsecond=0))
+
+
 def _per_storm_mask(
         *,
         data_cache: dict,
@@ -145,6 +162,7 @@ def _per_storm_mask(
           else storm["et_lon"])
     if pd.isna(rt) or np.isnan(rl):
         return None
+    rt = _round_to_6h(rt)
     rl_round = int(round(float(rl) % 360.0))
     M = np.zeros((NREL, composite_config.N_LAGS), dtype=np.int8)
     have = np.zeros(composite_config.N_LAGS, dtype=bool)
