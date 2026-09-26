@@ -1,7 +1,7 @@
 """Paper Fig. 6 (revised manuscript): storm-relative jet, waveguide and
 carrying capacity for WP and NA recurving TCs.
 
-Two panels (WP, NA) in recurvature-relative coordinates, all fields
+Two stacked panels (WP, NA) in recurvature-relative coordinates, all fields
 averaged over the T_0d .. T_+6d window (same window as the budget maps):
 
   shading        ERA5 250-hPa zonal wind (``era5_u250_1deg`` composite)
@@ -76,7 +76,7 @@ def _box_mean(*, field: np.ndarray, lon: np.ndarray, lat: np.ndarray,
 
 
 def _draw_panel(*, ax, data, u_f, fc_f, qgpv_f, title, coast_segs,
-                t_start, t_end, ylabel):
+                t_start, t_end, xlabel):
     lon, lat = data["_lon"], data["_lat"]
     lag_hours = data["_lag_hours"]
     cmap = plt.get_cmap("YlGnBu").copy()
@@ -87,41 +87,46 @@ def _draw_panel(*, ax, data, u_f, fc_f, qgpv_f, title, coast_segs,
             in_box = ((rl > lon[0] - 5) & (rl < lon[-1] + 5)
                       & (ra > lat[0] - 5) & (ra < lat[-1] + 5))
             if in_box.sum() > 1:
-                ax.plot(rl[in_box], ra[in_box], color="0.35", lw=0.7,
-                        alpha=0.8, zorder=2)
+                # Masking (not dropping) the outside points keeps the
+                # remaining pieces separate instead of joining them by chords.
+                ax.plot(np.ma.masked_where(~in_box, rl),
+                        np.ma.masked_where(~in_box, ra), color="0.45",
+                        lw=0.7, zorder=2)
     cs = ax.contour(lon, lat, fc_f, levels=FC_LEVELS, colors="k",
-                    linewidths=1.1, zorder=3)
-    ax.clabel(cs, fmt="%d", fontsize=8, inline=True)
+                    linewidths=1.3, zorder=3)
+    ax.clabel(cs, fmt="%d", fontsize=10, inline=True)
     if qgpv_f is not None and np.any(np.isfinite(qgpv_f)):
         qs = gaussian_filter(np.where(np.isfinite(qgpv_f), qgpv_f, 0.0),
                              sigma=(1.5, 1.5))
         ax.contour(lon, lat, qs, levels=QGPV_LEVELS, colors="green",
-                   linewidths=1.0, linestyles="--", alpha=0.9, zorder=3)
+                   linewidths=1.2, linestyles="--", alpha=0.9, zorder=3)
     mrl = data.get("_mean_rel_lat")
     mrn = data.get("_mean_rel_lon")
     if mrl is not None:
         m = ((lag_hours >= t_start - 24) & (lag_hours <= t_end + 24)
              & np.isfinite(mrl) & np.isfinite(mrn))
-        ax.plot(mrn[m], mrl[m], "k-", lw=2.5, zorder=4)
+        ax.plot(mrn[m], mrl[m], "k-", lw=3.0, zorder=4)
         lag0 = int(np.argmin(np.abs(lag_hours)))
-        ax.plot(mrn[lag0], mrl[lag0], "+", color="lime", ms=14, mew=2.5,
+        ax.plot(mrn[lag0], mrl[lag0], "+", color="lime", ms=16, mew=3.0,
                 zorder=10)
     ax.add_patch(Rectangle((FC_BOX_LON[0], FC_BOX_LAT[0]),
                            FC_BOX_LON[1] - FC_BOX_LON[0],
                            FC_BOX_LAT[1] - FC_BOX_LAT[0],
-                           fill=False, ec="magenta", lw=1.8, ls="--",
+                           fill=False, ec="magenta", lw=2.0, ls="--",
                            zorder=5))
     y0 = max(float(lat[0]), REL_LAT_MIN)
     ax.set_xlim(lon[0], lon[-1])
     ax.set_ylim(y0, lat[-1])
     ax.set_box_aspect((lat[-1] - y0) / (lon[-1] - lon[0]))
-    ax.axhline(0, color="k", lw=0.3, ls=":")
-    ax.axvline(0, color="k", lw=0.3, ls=":")
-    ax.set_title(title, fontsize=11, pad=3)
-    ax.set_xlabel("rel. lon (\N{DEGREE SIGN})", fontsize=10)
-    if ylabel:
-        ax.set_ylabel("rel. lat (\N{DEGREE SIGN})", fontsize=10)
-    ax.tick_params(labelsize=9)
+    ax.axhline(0, color="k", lw=0.4, ls=":")
+    ax.axvline(0, color="k", lw=0.4, ls=":")
+    ax.set_title(title, fontsize=13, loc="left", pad=4)
+    if xlabel:
+        ax.set_xlabel("rel. lon (\N{DEGREE SIGN})", fontsize=12)
+    ax.set_ylabel("rel. lat (\N{DEGREE SIGN})", fontsize=12)
+    ax.set_xticks(np.arange(-20, lon[-1] + 1, 20))
+    ax.set_yticks(np.arange(-10, lat[-1] + 1, 10))
+    ax.tick_params(labelsize=11)
     return cf
 
 
@@ -154,7 +159,9 @@ def main(
     fig_dir = Path(output_directory)
     fig_dir.mkdir(parents=True, exist_ok=True)
 
-    fig, axes = plt.subplots(1, 2, figsize=(13.5, 4.4))
+    fig, axes = plt.subplots(2, 1, figsize=(8.0, 4.2), sharex=True,
+                             layout="constrained")
+    fig.get_layout_engine().set(h_pad=0.04, hspace=0.02)
     cf = None
     for ax, basin, letter in zip(axes, ("WP", "NA"), ("a", "b")):
         data = budget_maps.load_composite(
@@ -191,17 +198,17 @@ def main(
         cf = _draw_panel(ax=ax, data=data, u_f=u_f, fc_f=fc_f, qgpv_f=qgpv_f,
                          title=title, coast_segs=coast,
                          t_start=t_start, t_end=t_end,
-                         ylabel=(basin == "WP"))
+                         xlabel=(basin == "NA"))
         print(f"{basin}: N={n}, box-mean Fc={fc_box:.2f}, "
               f"box-mean u250={u_box:.2f}, "
               f"mean recurv lat={data['_mean_abs_lat']:.2f}", flush=True)
-    cb = fig.colorbar(cf, ax=axes.tolist(), orientation="horizontal",
-                      fraction=0.06, pad=0.2, shrink=0.45, aspect=40)
-    cb.set_label("250-hPa zonal wind (m s$^{-1}$), T$_0$\N{EN DASH}T$_{+6d}$ mean",
-                 fontsize=10)
-    cb.ax.tick_params(labelsize=9)
+    cb = fig.colorbar(cf, ax=axes.tolist(), orientation="vertical",
+                      fraction=0.04, pad=0.015, shrink=0.9, aspect=22)
+    cb.set_label("250-hPa zonal wind (m s$^{-1}$)", fontsize=12)
+    cb.ax.tick_params(labelsize=11)
     out = fig_dir / figure_name.format(reference=reference)
-    fig.savefig(out, dpi=200, bbox_inches="tight", facecolor="white")
+    fig.savefig(out, dpi=300, bbox_inches="tight", pad_inches=0.03,
+                facecolor="white")
     plt.close(fig)
     print(f"Saved: {out}")
 
