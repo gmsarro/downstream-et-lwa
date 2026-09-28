@@ -49,6 +49,11 @@ FC_KEY = {"era5": "era5_cc_Fc",
           "current": "mpas_current_mpas_cc_Fc",
           "future": "mpas_future_mpas_cc_Fc"}
 
+# Precipitation carries no cos(phi) factor, so its box means are area
+# weighted; the LH-LWA source and F_c already contain the metric factor in
+# their definitions and are averaged over grid points.
+COS_WEIGHTED_KEYS = frozenset(PRECIP_KEY.values())
+
 WIN_PRECIP_H = (0.0, 120.0)
 WIN_LH_H = (-24.0, 120.0)
 WIN_FC_H = (0.0, 120.0)
@@ -107,6 +112,7 @@ def _box_mean(
         lat_c: float,
         lon_c: float,
         halfwidth: float,
+        cos_weighted: bool = False,
 ) -> float:
     if not (np.isfinite(lat_c) and np.isfinite(lon_c)):
         return float(np.nan)
@@ -125,12 +131,16 @@ def _box_mean(
     if not lon_mask.any():
         return float(np.nan)
     sub = field_2d_1deg[np.ix_(lat_mask, lon_mask)]
-    if not np.isfinite(sub).any():
+    valid = np.isfinite(sub)
+    if not valid.any():
         return float(np.nan)
-    return float(np.nanmean(sub))
+    if not cos_weighted:
+        return float(np.nanmean(sub))
+    w = np.broadcast_to(np.cos(np.deg2rad(lat[lat_mask]))[:, None], sub.shape)
+    return float(np.sum(sub[valid] * w[valid]) / np.sum(w[valid]))
 
 
-def _box_mean_ne_cosweighted(
+def _box_mean_ne(
         *,
         field_2d_1deg: np.ndarray,
         lat_c: float,
@@ -157,12 +167,9 @@ def _box_mean_ne_cosweighted(
     if not lon_mask.any():
         return float(np.nan)
     sub = field_2d_1deg[np.ix_(lat_mask, lon_mask)]
-    valid = np.isfinite(sub)
-    if not valid.any():
+    if not np.isfinite(sub).any():
         return float(np.nan)
-    sub_lat = lat[lat_mask]
-    w = np.broadcast_to(np.cos(np.deg2rad(sub_lat))[:, None], sub.shape)
-    return float(np.sum(sub[valid] * w[valid]) / np.sum(w[valid]))
+    return float(np.nanmean(sub))
 
 
 def _ensure_registry(*, data_config: dict[str, str],
@@ -201,7 +208,7 @@ def _process_storm_chunk_fc(args: tuple) -> list[float]:
             field = grid_utils.prepare_field(data=raw, source=ds)
             if field is None:
                 continue
-            v = _box_mean_ne_cosweighted(
+            v = _box_mean_ne(
                 field_2d_1deg=field, lat_c=rlat, lon_c=rlon,
                 dlat_lo=dlat_lo, dlat_hi=dlat_hi,
                 dlon_lo=dlon_lo, dlon_hi=dlon_hi)
@@ -272,7 +279,8 @@ def _process_storm_chunk_era5(args: tuple) -> list[float]:
             v = _box_mean(field_2d_1deg=field,
                           lat_c=float(track_lat_i[lag_idx]),
                           lon_c=float(track_lon_i[lag_idx]),
-                          halfwidth=halfwidth)
+                          halfwidth=halfwidth,
+                          cos_weighted=var_key in COS_WEIGHTED_KEYS)
             if np.isfinite(v):
                 per_lag.append(v)
         out.append(float(np.nanmean(per_lag)) if per_lag else float(np.nan))
