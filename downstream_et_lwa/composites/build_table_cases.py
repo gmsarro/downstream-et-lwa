@@ -49,11 +49,8 @@ FC_KEY = {"era5": "era5_cc_Fc",
           "current": "mpas_current_mpas_cc_Fc",
           "future": "mpas_future_mpas_cc_Fc"}
 
-# Precipitation carries no cos(phi) factor, so its box means are area
-# weighted; the LH-LWA source and F_c already contain the metric factor in
-# their definitions and are averaged over grid points.
-COS_WEIGHTED_KEYS = frozenset(PRECIP_KEY.values())
-
+# Every box mean is the area-weighted mean of the field on the sphere,
+# sum(X cos(phi)) / sum(cos(phi)) over the valid 1-degree cells of the box.
 WIN_PRECIP_H = (0.0, 120.0)
 WIN_LH_H = (-24.0, 120.0)
 WIN_FC_H = (0.0, 120.0)
@@ -106,41 +103,7 @@ def _load_storm_meta(
     return j, track_lat, track_lon, track_pres, track_wind, lag_h
 
 
-def _box_mean(
-        *,
-        field_2d_1deg: np.ndarray,
-        lat_c: float,
-        lon_c: float,
-        halfwidth: float,
-        cos_weighted: bool = False,
-) -> float:
-    if not (np.isfinite(lat_c) and np.isfinite(lon_c)):
-        return float(np.nan)
-    lat = grid_utils.GRID_1DEG_NH.lat
-    lon = grid_utils.GRID_1DEG_NH.lon
-    lat_mask = (lat >= lat_c - halfwidth) & (lat <= lat_c + halfwidth)
-    if not lat_mask.any():
-        return float(np.nan)
-    lon_c_w = lon_c % 360.0
-    lo = (lon_c_w - halfwidth) % 360.0
-    hi = (lon_c_w + halfwidth) % 360.0
-    if lo <= hi:
-        lon_mask = (lon >= lo) & (lon <= hi)
-    else:
-        lon_mask = (lon >= lo) | (lon <= hi)
-    if not lon_mask.any():
-        return float(np.nan)
-    sub = field_2d_1deg[np.ix_(lat_mask, lon_mask)]
-    valid = np.isfinite(sub)
-    if not valid.any():
-        return float(np.nan)
-    if not cos_weighted:
-        return float(np.nanmean(sub))
-    w = np.broadcast_to(np.cos(np.deg2rad(lat[lat_mask]))[:, None], sub.shape)
-    return float(np.sum(sub[valid] * w[valid]) / np.sum(w[valid]))
-
-
-def _box_mean_ne(
+def _area_mean(
         *,
         field_2d_1deg: np.ndarray,
         lat_c: float,
@@ -150,6 +113,9 @@ def _box_mean_ne(
         dlon_lo: float,
         dlon_hi: float,
 ) -> float:
+    """Area-weighted (cos(phi)) mean of the 1-degree field inside the
+    latitude-longitude rectangle [lat_c+dlat_lo, lat_c+dlat_hi] x
+    [lon_c+dlon_lo, lon_c+dlon_hi] (periodic in longitude); NaN if empty."""
     if not (np.isfinite(lat_c) and np.isfinite(lon_c)):
         return float(np.nan)
     lat = grid_utils.GRID_1DEG_NH.lat
@@ -167,9 +133,40 @@ def _box_mean_ne(
     if not lon_mask.any():
         return float(np.nan)
     sub = field_2d_1deg[np.ix_(lat_mask, lon_mask)]
-    if not np.isfinite(sub).any():
+    valid = np.isfinite(sub)
+    if not valid.any():
         return float(np.nan)
-    return float(np.nanmean(sub))
+    w = np.broadcast_to(np.cos(np.deg2rad(lat[lat_mask]))[:, None], sub.shape)
+    return float(np.sum(sub[valid] * w[valid]) / np.sum(w[valid]))
+
+
+def _box_mean(
+        *,
+        field_2d_1deg: np.ndarray,
+        lat_c: float,
+        lon_c: float,
+        halfwidth: float,
+) -> float:
+    """Area-weighted mean over the storm-centred +-halfwidth box."""
+    return _area_mean(field_2d_1deg=field_2d_1deg, lat_c=lat_c, lon_c=lon_c,
+                      dlat_lo=-halfwidth, dlat_hi=halfwidth,
+                      dlon_lo=-halfwidth, dlon_hi=halfwidth)
+
+
+def _box_mean_ne(
+        *,
+        field_2d_1deg: np.ndarray,
+        lat_c: float,
+        lon_c: float,
+        dlat_lo: float,
+        dlat_hi: float,
+        dlon_lo: float,
+        dlon_hi: float,
+) -> float:
+    """Area-weighted mean over the recurvature-anchored downstream box."""
+    return _area_mean(field_2d_1deg=field_2d_1deg, lat_c=lat_c, lon_c=lon_c,
+                      dlat_lo=dlat_lo, dlat_hi=dlat_hi,
+                      dlon_lo=dlon_lo, dlon_hi=dlon_hi)
 
 
 def _ensure_registry(*, data_config: dict[str, str],
@@ -279,8 +276,7 @@ def _process_storm_chunk_era5(args: tuple) -> list[float]:
             v = _box_mean(field_2d_1deg=field,
                           lat_c=float(track_lat_i[lag_idx]),
                           lon_c=float(track_lon_i[lag_idx]),
-                          halfwidth=halfwidth,
-                          cos_weighted=var_key in COS_WEIGHTED_KEYS)
+                          halfwidth=halfwidth)
             if np.isfinite(v):
                 per_lag.append(v)
         out.append(float(np.nanmean(per_lag)) if per_lag else float(np.nan))
